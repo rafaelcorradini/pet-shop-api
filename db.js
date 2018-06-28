@@ -1,3 +1,6 @@
-import nano from 'nano';
+const NodeCouchDb = require('node-couchdb');
 
-module.exports = nano(process.env.COUCHDB_URL || 'http://127.0.0.1:5984');
+// node-couchdb instance with default options
+const couch = new NodeCouchDb();
+
+module.exports = couch;

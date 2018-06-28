@@ -12,13 +12,10 @@ let app = express();
 
 const port = process.env.PORT || 3000;
 
-couch.db.create('petshop', function(err) {  
-    if (err && err.statusCode != 412) {
-      console.error(err);
-    }
-    else {
-      console.log('database petshop exists');
-    }
+couch.createDatabase('products').then(() => {
+  console.log('database petshop created');
+}, err => {
+  console.log('database petshop exists')
 });
 
 // Helmet helps to secure the app by setting various HTTP headers
@@ -45,9 +42,6 @@ app.use(bodyParser.json());
 app.listen(port);
 
 
-// router config
-let router = express.Router();       
-
 app.get('/', function(req, res) {
     res.send('welcome');   
 });
@@ -55,4 +49,4 @@ app.get('/', function(req, res) {
 // all of our routes will be prefixed with /api
 // app.use('/api', auth);
 // app.use('/api/users', users);
-app.use('/api/users', products)
+app.use('/api/products', products);

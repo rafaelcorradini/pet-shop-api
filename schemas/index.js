@@ -1,6 +1,5 @@
-var schemaNames = ['user'];
-
-var schemas = {};
+let schemaNames = ['product'];
+let schemas = {};
 
 schemaNames.forEach(function(schemaName) {  
   schemas[schemaName] = require('./' + schemaName);
@@ -22,7 +21,7 @@ function validate(doc, schema, cb) {
 };
 
 exports.validating = function validating(schemaName, fn) {  
-  var schema = schemas[schemaName];
+  let schema = schemas[schemaName];
   if (! schema) {
     throw new Error('Unknown schema: ' + schemaName);
   }

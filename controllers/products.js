@@ -1,6 +1,6 @@
-import schemas from '../schemas';
+// import schemas from '../schemas';
 
-let products = require('../couchdb').use('products');
+const db = require('../db');
 
 // exports.create = schemas.validating('product', create);
 
@@ -9,9 +9,19 @@ let products = require('../couchdb').use('products');
 // }
 
 exports.create = (req, res) => {
-    products.insert(req.body, req.body.name, (err, results) => {
-        if (err) return res.status(400).json({message: "Validation error.", error: err});
+    db.insert('products', req.body).then( ({data, status}) => {
+        if (status != 201)
+            return res.status(400).json({message: "Validation error.", error: err});
 
-		return res.status(201).json(results);
+		return res.status(201).json(data);
+    });
+}
+
+exports.getAll = (req, res) => {
+    db.get('products').then( ({data, status}) => {
+        if (status != 200)
+            return res.status(400).json({message: "Validation error.", error: err});
+
+		return res.status(200).json(data);
     });
 }
