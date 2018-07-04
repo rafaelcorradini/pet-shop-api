@@ -1,17 +1,19 @@
 import express from 'express';
 import usersController from '../controllers/users';
 import middleware from '../middleware';
+import usersSchema from '../schemas/users'
+import validate from 'express-joi-validator';
 let router = express.Router();
 
 
 // middleware that is specific to this router
-router.use(middleware.auth);
+// router.use(middleware.auth);
 
-router.get('/', middleware.permissions, usersController.get);
+// router.get('/', middleware.permissions, usersController.getAll);
 
-router.get('/:id', middleware.permissions, usersController.get);
+router.get('/:id', usersController.get);
 
-router.post('/', usersController.create);
+router.post('/', validate(usersSchema), usersController.create);
 
 router.delete('/:id', usersController.delete);
 

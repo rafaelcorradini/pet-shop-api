@@ -7,11 +7,13 @@ const router = express.Router();
 
 
 // middleware that is specific to this router
-// router.use(middleware.auth);
+router.use(middleware.auth);
 
 router.post('/', validate(productsSchema), productsController.create);
 
 router.get('/', productsController.getAll);
+
+router.get('/:id', productsController.get);
 
 // router.post('/', productsController.create);
 
