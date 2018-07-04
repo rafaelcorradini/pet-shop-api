@@ -12,8 +12,7 @@ exports.create = (req, res) => {
 
 exports.getAll = (req, res) => {
     const query = {
-        include_docs: true,
-        attachments: true
+        include_docs: true
     }
     return db.get('products', '_all_docs', query).then( ({data, status}) => {
         if (status != 200)
