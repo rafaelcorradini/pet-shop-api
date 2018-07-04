@@ -12,12 +12,16 @@ exports.create = (req, res) => {
 
 exports.getAll = (req, res) => {
     const query = {
-        include_docs: true
+        include_docs: true,
+        attachments: true
     }
     return db.get('products', '_all_docs', query).then( ({data, status}) => {
         if (status != 200)
             return res.status(400).json({message: "DB error.", error: err});
-
-		return res.status(200).json(data.rows);
+        let result = []
+        data.rows.map((obj) => {
+            result.push(obj.doc)
+        });
+		return res.status(200).json(result);
     });
 }
