@@ -1,7 +1,7 @@
-let config = require('./config');
-let jwt = require('jsonwebtoken');
+const config = require('./config');
+const jwt = require('jsonwebtoken');
 
-exports.auth = function (req, res, next) {
+exports.auth = (req, res, next) => {
 	// check header or url parameters or post parameters for token
 	const authorization = req.headers['authorization'];
 	let token = null;
@@ -11,7 +11,7 @@ exports.auth = function (req, res, next) {
 	if (token) {
 		jwt.verify(token, config.secret, function (err, decoded) {
 			if (err) {
-				return res.status(400).json({ message: 'Failed to authenticate token.' });
+				return res.status(401).json({ message: 'Failed to authenticate token.' });
 			} else {
 				// if everything is good, save to request for use in other routes
 				req.decoded = decoded;
@@ -19,14 +19,14 @@ exports.auth = function (req, res, next) {
 			}
 		});
 	} else {
-		return res.status(403).json({ message: 'No token provided.' });
+		return res.status(401).json({ message: 'No token provided.' });
 	}
 }
 
-exports.permissions = function (req, res, next) {
+exports.permissions = (req, res, next) => {
 	let path = req.originalUrl.split('/');
 	let params = Object.keys(req.params).map(key => req.params[key]);
-	let permissions = req.decoded.permissions[req.method.toLowerCase()];
+	let permissions = config.permissions[req.decoded.role][req.method.toLowerCase()];
 	let allowed = false;
 
 	// this will convert a route /users/1 to /users/:param

@@ -7,6 +7,8 @@ exports.create = (req, res) => {
     let user = req.body;
     let salt = bcrypt.genSaltSync(10);
 
+    if (req.body.password == undefined || req.body.password == null)
+        return res.status(400).json({message: "Missing password."});
     user.password = bcrypt.hashSync(req.body.password, salt);
     db.insert('users', user).then( ({data, status}) => {
         if (status != 201)
@@ -19,6 +21,9 @@ exports.create = (req, res) => {
 exports.get = (req, res) => {
     let id = req.params.id;
 
+    if (req.decoded.role == 'client')
+        id = req.decoded.user_id;
+
     db.get('users', id).then( ({data, status}) => {
         if (status != 200)
             return res.status(400).json({message: "Resource not found."});
@@ -27,48 +32,64 @@ exports.get = (req, res) => {
     });
 }
 
-exports.edit = function(req, res) {
+exports.getAll = (req, res) => {
+    const query = {
+        include_docs: true
+    }
+    db.get('users', '_all_docs', query).then( ({data, status}) => {
+        if (status != 200)
+            return res.status(400).json({message: "DB error."});
+        let result = []
+        data.rows.map((obj) => {
+            result.push(obj.doc)
+        });
+		return res.status(200).json(result);
+    });
+}
+
+exports.edit = async (req, res) => {
     let id = req.params.id;
     let password = req.body.password;
 
-	req.models.user.get(id, function(err, user) {
-		if (err) return res.status(400).json({message: "User not found."});
+    let user = await db.get('users', id).then( ({data, status}) => {
+        if (status != 200)
+            return res.status(404).json({message: "Not found."});
 
-        if (bcrypt.compareSync(password, user.password)) {
-            user.name = user.name;
-            user.save(function(err) {
-                if (err) return res.status(400).json({message: "Something went wrong."});
+        return data;
+    });
 
-                return res.status(200).json({message: "User updated."});
-            });
-        } else {
-            return res.status(400).json({message: "Authentication failed. wrong password."});
-        }
-	});
+    req.body._id = user._id
+    req.body._rev = user._rev
+    req.body.password = user.password
+
+    if ((req.decoded.role == 'client' && bcrypt.compareSync(password, user.password)) ||
+        req.decoded.role == 'admin') {
+        db.update('users', req.body).then( ({data, status}) => {
+            return res.status(status).json(req.body);
+        });
+    } else {
+        return res.status(403).json({message: "Unauthorized"});
+    }
 }
 
-exports.delete = function(req, res) {
+exports.delete = async (req, res) => {
     let id = req.params.id;
 
-	req.models.user.get(id, function(err, user) {
-		if (err) return res.status(400).json({message: "User not found."});
+    let user = await db.get('users', id).then( ({data, status}) => {
+        if (status != 200)
+            return res.status(404).json({message: "Not found."});
 
-        if (bcrypt.compareSync(password, user.password)) {
-            user.remove(function(err) {
-                if (err) return res.status(400).json({message: "Something went wrong."});
+        return data;
+    });
 
-                return res.status(200).json({message: "User removed."});
-            });
-        } else {
-            return res.status(400).json({message: "Authentication failed. wrong password."});
-        }
-	});
+    db.del('users', user._id, user._rev).then( ({data, status}) => {
+        return res.status(status).json(req.body);
+    });
 }
 
-exports.login = function(req, res) {
-    let username = req.body.username;ogin
+exports.login = (req, res) => {
+    let username = req.body.username;
     let password = req.body.password;
-    let permissions;
 
     const mangoQuery = {
         selector: {
@@ -78,6 +99,9 @@ exports.login = function(req, res) {
          }
     };
 
+    if (username == null || username == undefined || password == null || password == undefined)
+        return res.status(400).json({message: "Authentication failed."});
+
 	db.mango('users', mangoQuery).then(({data, headers, status}) => {
         let user = data.docs[0];
 		if (typeof user === 'undefined' || user.length == 0) {
@@ -86,14 +110,12 @@ exports.login = function(req, res) {
             if (!bcrypt.compareSync(password, user.password)) {
                 return res.status(400).json({message: "Authentication failed. wrong password."});
             } else {
-                permissions = config.permissions[user.role];
-                let token = jwt.sign({user_id: user.id, permissions: permissions, role: user.role}, config.secret, {
+                let token = jwt.sign({user_id: user._id, role: user.role}, config.secret, {
                     expiresIn: 60*60*24 // expires in 24 hours
                 });
 
                 let result = {
-                    token: token,
-                    permissions: permissions
+                    token: token
                 }
 
                 return res.status(200).json(result);

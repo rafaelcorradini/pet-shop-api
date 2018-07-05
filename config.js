@@ -3,15 +3,12 @@ const config = {
     debug: true,
     permissions: {
         admin: {
-            get: ['/api/users/:param', '/api/users'],
-            post: ['/api/users'],
+            get: ['/api/users/:param', '/api/users', '/api/products'],
+            post: ['/api/users', '/api/products'],
             delete: ['/api/users/:param'],
-            put: ['/api/users/:param'],
-            get: ['/api/products'],
-            post: ['/api/products']
+            put: ['/api/users/:param']
         },
         client: {
-            delete: ['/api/users/:param'],
             post: ['/api/users/:param'],
             get: ['/api/products'],
         }

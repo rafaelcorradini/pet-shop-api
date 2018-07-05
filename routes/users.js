@@ -7,16 +7,16 @@ let router = express.Router();
 
 
 // middleware that is specific to this router
-// router.use(middleware.auth);
+router.use(middleware.auth);
 
-// router.get('/', middleware.permissions, usersController.getAll);
+router.get('/', middleware.permissions, usersController.getAll);
 
 router.get('/:id', usersController.get);
 
 router.post('/', validate(usersSchema), usersController.create);
 
-router.delete('/:id', usersController.delete);
+router.delete('/:id', middleware.permissions, usersController.delete);
 
-router.put('/:id', usersController.edit);
+router.put('/:id', validate(usersSchema), usersController.edit);
 
 module.exports = router;
