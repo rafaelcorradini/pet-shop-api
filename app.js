@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import products from './routes/products';
 import users from './routes/users';
 import auth from './routes/auth';
+import animals from './routes/animals';
 import couch from './db';
 
 let app = express();
@@ -11,7 +12,7 @@ let app = express();
 const port = process.env.PORT || 3000;
 
 const databases = [
-  'products', 'users'
+  'products', 'users', 'animals'
 ]
 
 databases.map((db) => {
@@ -40,3 +41,4 @@ app.get('/', function(req, res) {
 app.use('/api', auth);
 app.use('/api/users', users);
 app.use('/api/products', products);
+app.use('/api/animals', animals);

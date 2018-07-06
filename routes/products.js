@@ -7,7 +7,7 @@ const router = express.Router();
 
 
 // middleware that is specific to this router
-router.use(middleware.auth);
+//router.use(middleware.auth);
 
 router.post('/', validate(productsSchema), productsController.create);
 
@@ -17,8 +17,8 @@ router.get('/:id', productsController.get);
 
 // router.post('/', productsController.create);
 
-// router.delete('/:id', productsController.delete);
+router.delete('/:id', productsController.delete);
 
-// router.put('/:id', productsController.edit);
+router.put('/:id', validate(productsSchema), productsController.edit);
 
 module.exports = router;

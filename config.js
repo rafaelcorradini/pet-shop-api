@@ -10,7 +10,8 @@ const config = {
         },
         client: {
             post: ['/api/users/:param'],
-            get: ['/api/products'],
+            get: ['/api/products', '/api/products/:param'],
+            put: ['/api/products/:param']
         }
     }
 };

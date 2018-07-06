@@ -35,3 +35,43 @@ exports.getAll = (req, res) => {
 		return res.status(200).json(result);
     });
 }
+
+exports.delete = async (req, res) => {
+    let id = req.params.id;
+
+    let product = await db.get('products', id).then( ({data, status}) => {
+        if (status != 200)
+            return res.status(404).json({message: "Not found."});
+
+        return data;
+    });
+
+    db.del('products', product._id, product._rev).then( ({data, status}) => {
+        return res.status(status).json(req.body);
+    });
+}
+
+exports.edit = async (req, res) => {
+    let id = req.params.id;
+
+    let products = await db.get('products', id).then( ({data, status}) => {
+        if (status != 200)
+            return res.status(404).json({message: "Not found."});
+
+        return data;
+    });
+
+    console.log(req.body)
+    req.body._id = products._id
+    req.body._rev = products._rev
+    
+    console.log(req.body)
+    db.update('products', req.body).then( ({data, headers, status}) => {
+        if (status == 201)
+            return res.status(status).json(req.body);
+        else
+            return res.status(403).json({message: "Unauthorized"});
+    });
+    
+    
+}

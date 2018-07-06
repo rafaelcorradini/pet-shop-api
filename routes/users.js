@@ -7,9 +7,9 @@ let router = express.Router();
 
 
 // middleware that is specific to this router
-router.use(middleware.auth);
+//router.use(middleware.auth);
 
-router.get('/', middleware.permissions, usersController.getAll);
+router.get('/', usersController.getAll);
 
 router.get('/:id', usersController.get);
 
