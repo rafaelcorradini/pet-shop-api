@@ -2,6 +2,8 @@ import express from 'express';
 import helmet from 'helmet';
 import bodyParser from 'body-parser';
 import products from './routes/products';
+import schedules from './routes/schedules';
+import services from './routes/services';
 import users from './routes/users';
 import auth from './routes/auth';
 import animals from './routes/animals';
@@ -12,7 +14,7 @@ let app = express();
 const port = process.env.PORT || 3000;
 
 const databases = [
-  'products', 'users', 'animals'
+  'products', 'users', 'animals', 'services', 'schedules'
 ]
 
 databases.map((db) => {
@@ -42,3 +44,5 @@ app.use('/api', auth);
 app.use('/api/users', users);
 app.use('/api/products', products);
 app.use('/api/animals', animals);
+app.use('/api/services', services);
+app.use('/api/schedules', schedules);

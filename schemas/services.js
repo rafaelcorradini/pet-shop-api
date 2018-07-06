@@ -4,6 +4,6 @@ module.exports = {
   body: {
       name: Joi.string().required(),
       description: Joi.string().required(),
-      price: Joi.string().required(),
+      duration: Joi.string().required()
   }
 }
