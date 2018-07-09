@@ -1,12 +1,55 @@
-var bcrypt = require('bcrypt');
-var jwt    = require('jsonwebtoken');
-var config = require('../config');
+const bcrypt = require('bcrypt');
+const jwt    = require('jsonwebtoken');
+const config = require('../config');
 const db = require('../db');
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
     let user = req.body;
     let salt = bcrypt.genSaltSync(10);
 
+    const mangoQuery = {
+        selector: {
+            username: {
+               $eq: user.username
+            }
+         }
+    };
+
+    let test = await db.mango('users', mangoQuery).then(({data, headers, status}) => {
+        if (data.docs.length > 0)
+            return res.status(400).json({message: "Username already exist."});
+    });
+
+    if (req.body.password == undefined || req.decoded.role != 'admin')
+        return res.status(400).json({message: "Missing password."});
+    user.password = bcrypt.hashSync(req.body.password, salt);
+    db.insert('users', user).then( ({data, status}) => {
+        if (status != 201)
+            return res.status(400).json({message: "DB error."});
+
+		return res.status(201).json(data);
+    });
+
+}
+
+exports.register = async (req, res) => {
+    let user = req.body;
+    let salt = bcrypt.genSaltSync(10);
+
+    const mangoQuery = {
+        selector: {
+            username: {
+               $eq: user.username
+            }
+         }
+    };
+
+    let test = await db.mango('users', mangoQuery).then(({data, headers, status}) => {
+        if (data.docs.length > 0)
+            return res.status(400).json({message: "Username already exist."});
+    });
+
+    req.body.role = 'client';
     if (req.body.password == undefined || req.body.password == null)
         return res.status(400).json({message: "Missing password."});
     user.password = bcrypt.hashSync(req.body.password, salt);
@@ -16,35 +59,44 @@ exports.create = (req, res) => {
 
 		return res.status(201).json(data);
     });
+
 }
 
 exports.get = (req, res) => {
     let id = req.params.id;
 
-    if (req.decoded.role == 'client')
+    if (req.decoded.role == 'client' || id == 'me')
         id = req.decoded.user_id;
 
     db.get('users', id).then( ({data, status}) => {
         if (status != 200)
             return res.status(400).json({message: "Resource not found."});
-
+        delete data.password
+        data.id = data._id
 		return res.status(200).json(data);
     });
+
 }
 
 exports.getAll = (req, res) => {
     const query = {
         include_docs: true
     }
+    if (req.decoded.role == 'client')
+        return res.status(400).json({message: "Unauthorized."});
     db.get('users', '_all_docs', query).then( ({data, status}) => {
         if (status != 200)
             return res.status(400).json({message: "DB error."});
-        let result = []
+        let result = [];
         data.rows.map((obj) => {
-            result.push(obj.doc)
+            obj.doc.id = obj.doc._id
+            delete obj.doc.password
+            if (obj.doc.role == req.query.role)
+                result.push(obj.doc);
         });
 		return res.status(200).json(result);
     });
+
 }
 
 exports.edit = async (req, res) => {
@@ -70,6 +122,7 @@ exports.edit = async (req, res) => {
     } else {
         return res.status(403).json({message: "Unauthorized"});
     }
+
 }
 
 exports.delete = async (req, res) => {
@@ -85,6 +138,7 @@ exports.delete = async (req, res) => {
     db.del('users', user._id, user._rev).then( ({data, status}) => {
         return res.status(status).json(req.body);
     });
+
 }
 
 exports.login = (req, res) => {
@@ -115,11 +169,13 @@ exports.login = (req, res) => {
                 });
 
                 let result = {
+                    role: user.role,
                     token: token
                 }
 
                 return res.status(200).json(result);
             }
         }
-	});
+    });
+    
 }

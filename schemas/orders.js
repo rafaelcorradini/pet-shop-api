@@ -5,8 +5,9 @@ module.exports = {
         id: Joi.string(),
         _id: Joi.string(),
         _rev: Joi.string(),
-        name: Joi.string().required(),
-        description: Joi.string().required(),
-        duration: Joi.string().required()
+        clientId: Joi.string(),
+        items: Joi.array(),
+        finalized: Joi.boolean().required(),
+        date: Joi.string()
     }
 }

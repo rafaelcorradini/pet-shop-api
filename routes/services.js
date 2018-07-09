@@ -7,18 +7,16 @@ const router = express.Router();
 
 
 // middleware that is specific to this router
-//router.use(middleware.auth);
+router.use(middleware.auth);
 
-router.post('/', validate(servicesSchema), servicesController.create);
+router.post('/', middleware.permissions, validate(servicesSchema), servicesController.create);
 
-router.get('/', servicesController.getAll);
+router.get('/', middleware.permissions, servicesController.getAll);
 
-router.get('/:id', servicesController.get);
+router.get('/:id', middleware.permissions, servicesController.get);
 
-// router.post('/', servicesController.create);
+router.delete('/:id', middleware.permissions, servicesController.delete);
 
-router.delete('/:id', servicesController.delete);
-
-router.put('/:id', validate(servicesSchema), servicesController.edit);
+router.put('/:id', middleware.permissions, validate(servicesSchema), servicesController.edit);
 
 module.exports = router;

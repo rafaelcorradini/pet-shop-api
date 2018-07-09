@@ -17,6 +17,7 @@ exports.get = (req, res) => {
         if (status != 200)
             return res.status(400).json({message: "Resource not found."});
 
+        data.id = data._id
 		return res.status(200).json(data);
     });
 }
@@ -28,12 +29,14 @@ exports.getAll = (req, res) => {
     db.get('products', '_all_docs', query).then( ({data, status}) => {
         if (status != 200)
             return res.status(400).json({message: "DB error."});
-        let result = []
+        let result = [];
         data.rows.map((obj) => {
-            result.push(obj.doc)
+            obj.doc.id = obj.doc._id
+            result.push(obj.doc);
         });
 		return res.status(200).json(result);
-    });
+    })
+    
 }
 
 exports.delete = async (req, res) => {
@@ -61,17 +64,13 @@ exports.edit = async (req, res) => {
         return data;
     });
 
-    console.log(req.body)
-    req.body._id = products._id
-    req.body._rev = products._rev
+    req.body._id = products._id;
+    req.body._rev = products._rev;
     
-    console.log(req.body)
     db.update('products', req.body).then( ({data, headers, status}) => {
         if (status == 201)
             return res.status(status).json(req.body);
         else
             return res.status(403).json({message: "Unauthorized"});
     });
-    
-    
 }

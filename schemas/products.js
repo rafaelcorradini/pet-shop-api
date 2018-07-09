@@ -1,9 +1,11 @@
 import Joi from 'joi';
 
 module.exports = {
-  body: {
-      name: Joi.string().required(),
-      description: Joi.string().required(),
-      price: Joi.string().required(),
-  }
+    body: {
+        id: Joi.string(),
+        _id: Joi.string(),
+        _rev: Joi.string(),
+        name: Joi.string().required(),
+        description: Joi.string().required()
+    }
 }

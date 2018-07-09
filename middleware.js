@@ -15,7 +15,7 @@ exports.auth = (req, res, next) => {
 			} else {
 				// if everything is good, save to request for use in other routes
 				req.decoded = decoded;
-				next();
+				return next();
 			}
 		});
 	} else {
@@ -28,6 +28,9 @@ exports.permissions = (req, res, next) => {
 	let params = Object.keys(req.params).map(key => req.params[key]);
 	let permissions = config.permissions[req.decoded.role][req.method.toLowerCase()];
 	let allowed = false;
+
+	if (permissions == '*')
+		return next();
 
 	// this will convert a route /users/1 to /users/:param
 	for (let i = 0, len = path.length; i < len; i++) {
@@ -43,6 +46,6 @@ exports.permissions = (req, res, next) => {
 			allowed = true;
 	}
 
-	if (allowed) next();
+	if (allowed) return next();
 	else return res.status(403).json({ message: "Unauthorized operation." });
 }
